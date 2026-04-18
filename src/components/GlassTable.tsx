@@ -15,98 +15,118 @@ interface GlassTableProps {
   claims: Claim[];
   onRowClick?: (claim: Claim) => void;
   itemsPerPage?: number;
+  showProvider?: boolean;
 }
 
-const columns: Column<Claim>[] = [
-  {
-    key: 'namaPeserta',
-    header: 'Nama Peserta',
-    render: (claim) => (
-      <div>
-        <p className="text-sm font-semibold text-white whitespace-nowrap">{claim.namaPeserta}</p>
-        <p className="text-xs text-white/40 font-mono mt-0.5">{claim.noPolis}</p>
-      </div>
-    ),
-  },
-  {
-    key: 'nomorKlaim',
-    header: 'No. Klaim',
-    render: (claim) => (
-      <span className="font-mono text-xs font-bold text-cyan-300">{claim.nomorKlaim}</span>
-    ),
-  },
-  {
-    key: 'periode',
-    header: 'Periode Polis',
-    render: (claim) => (
-      <div className="text-xs text-white/60 whitespace-nowrap">
-        <p>{claim.periodePolisAwal}</p>
-        <p className="text-white/30">s/d {claim.periodePolisAkhir}</p>
-      </div>
-    ),
-  },
-  {
-    key: 'bengkel',
-    header: 'Bengkel',
-    render: (claim) => (
-      <span className="text-xs font-bold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full whitespace-nowrap">
-        {claim.bengkelRekenan}
-      </span>
-    ),
-  },
-  {
-    key: 'nilaiKlaim',
-    header: 'Nilai Klaim',
-    render: (claim) => (
-      <span className="text-sm font-semibold text-violet-300 whitespace-nowrap">
-        {formatCurrency(claim.nilaiKlaimDiajukan)}
-      </span>
-    ),
-  },
-  {
-    key: 'dateOfLoss',
-    header: 'Date of Loss',
-    render: (claim) => (
-      <div>
-        <p className="text-xs font-semibold text-white whitespace-nowrap">{claim.dateOfLoss}</p>
-        <p className="text-[10px] text-amber-400/80 mt-0.5">{claim.causeOfLoss}</p>
-      </div>
-    ),
-  },
-  {
-    key: 'riskScore',
-    header: 'Risk Score',
-    render: (claim) => {
-      const color =
-        claim.riskScore >= 70
-          ? 'text-rose-400'
-          : claim.riskScore >= 40
-          ? 'text-amber-400'
-          : 'text-emerald-400';
-      return (
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-16 rounded-full bg-white/10 overflow-hidden flex-shrink-0">
-            <div
-              className={`h-full rounded-full ${
-                claim.riskScore >= 70 ? 'bg-rose-500' : claim.riskScore >= 40 ? 'bg-amber-500' : 'bg-emerald-500'
-              }`}
-              style={{ width: `${claim.riskScore}%` }}
-            />
-          </div>
-          <span className={`text-sm font-bold ${color}`}>{claim.riskScore}</span>
+function getColumns(showProvider: boolean): Column<Claim>[] {
+  const cols: Column<Claim>[] = [
+    {
+      key: 'namaPeserta',
+      header: 'Nama Peserta',
+      render: (claim) => (
+        <div>
+          <p className="text-sm font-semibold text-white whitespace-nowrap">{claim.namaPeserta}</p>
+          <p className="text-xs text-white/40 font-mono mt-0.5">{claim.noPolis}</p>
         </div>
-      );
+      ),
     },
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (claim) => <RiskBadge status={claim.status} size="sm" />,
-  },
-];
+    {
+      key: 'nomorKlaim',
+      header: 'No. Klaim',
+      render: (claim) => (
+        <span className="font-mono text-xs font-bold text-cyan-300">{claim.nomorKlaim}</span>
+      ),
+    },
+  ];
 
-export default function GlassTable({ claims, onRowClick, itemsPerPage = 5 }: GlassTableProps) {
+  if (showProvider) {
+    cols.push({
+      key: 'provider',
+      header: 'Provider',
+      render: (claim) => {
+        const isJaya = claim.provider.includes('Jaya');
+        return (
+          <span
+            className={`text-[10px] font-bold px-2.5 py-1 rounded-full whitespace-nowrap border ${
+              isJaya
+                ? 'text-cyan-300 bg-cyan-500/10 border-cyan-500/25'
+                : 'text-emerald-300 bg-emerald-500/10 border-emerald-500/25'
+            }`}
+          >
+            {isJaya ? 'Asuransi Jaya' : 'Asuransi Berkah'}
+          </span>
+        );
+      },
+    });
+  }
+
+  cols.push(
+    {
+      key: 'bengkel',
+      header: 'Bengkel',
+      render: (claim) => (
+        <span className="text-xs font-bold text-violet-300 bg-violet-500/10 border border-violet-500/20 px-2 py-0.5 rounded-full whitespace-nowrap">
+          {claim.bengkelRekenan}
+        </span>
+      ),
+    },
+    {
+      key: 'nilaiKlaim',
+      header: 'Nilai Klaim',
+      render: (claim) => (
+        <span className="text-sm font-semibold text-violet-300 whitespace-nowrap">
+          {formatCurrency(claim.nilaiKlaimDiajukan)}
+        </span>
+      ),
+    },
+    {
+      key: 'dateOfLoss',
+      header: 'Date of Loss',
+      render: (claim) => (
+        <div>
+          <p className="text-xs font-semibold text-white whitespace-nowrap">{claim.dateOfLoss}</p>
+          <p className="text-[10px] text-amber-400/80 mt-0.5">{claim.causeOfLoss}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'riskScore',
+      header: 'Risk Score',
+      render: (claim) => {
+        const color =
+          claim.riskScore >= 70
+            ? 'text-rose-400'
+            : claim.riskScore >= 40
+            ? 'text-amber-400'
+            : 'text-emerald-400';
+        return (
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-16 rounded-full bg-white/10 overflow-hidden flex-shrink-0">
+              <div
+                className={`h-full rounded-full ${
+                  claim.riskScore >= 70 ? 'bg-rose-500' : claim.riskScore >= 40 ? 'bg-amber-500' : 'bg-emerald-500'
+                }`}
+                style={{ width: `${claim.riskScore}%` }}
+              />
+            </div>
+            <span className={`text-sm font-bold ${color}`}>{claim.riskScore}</span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (claim) => <RiskBadge status={claim.status} size="sm" />,
+    },
+  );
+
+  return cols;
+}
+
+export default function GlassTable({ claims, onRowClick, itemsPerPage = 5, showProvider = false }: GlassTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
+  const columns = getColumns(showProvider);
 
   const totalPages = Math.max(1, Math.ceil(claims.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);

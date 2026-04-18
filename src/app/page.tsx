@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { mockLogin } from '@/lib/mockData';
+import { mockLogin, UserRole } from '@/lib/mockData';
 import { Shield, Eye, EyeOff, AlertCircle, Lock, User } from 'lucide-react';
 
 export default function LoginPage() {
@@ -29,22 +29,28 @@ export default function LoginPage() {
 
     localStorage.setItem('idrn_user', JSON.stringify(user));
 
-    if (user.role === 'INSURER') {
+    if (user.role === 'REGULATOR') {
+      router.push('/regulator');
+    } else if (user.role === 'INSURER') {
       router.push('/dashboard');
     } else {
       router.push('/adjuster');
     }
   };
 
-  const fillDemo = (role: 'INSURER' | 'ADJUSTER') => {
-    if (role === 'INSURER') {
-      setUsername('insurer');
-      setPassword('insurer123');
-    } else {
-      setUsername('adjuster');
-      setPassword('adjuster123');
+  const fillDemo = (role: string) => {
+    const demoMap: Record<string, { u: string; p: string }> = {
+      INSURER: { u: 'insurer', p: 'insurer123' },
+      INSURER2: { u: 'insurer2', p: 'insurer456' },
+      ADJUSTER: { u: 'adjuster', p: 'adjuster123' },
+      REGULATOR: { u: 'regulator', p: 'regulator123' },
+    };
+    const creds = demoMap[role];
+    if (creds) {
+      setUsername(creds.u);
+      setPassword(creds.p);
+      setError('');
     }
-    setError('');
   };
 
   return (
@@ -177,12 +183,28 @@ export default function LoginPage() {
                 <p className="text-[10px] text-white/30 mt-0.5">PT Asuransi Jaya</p>
               </button>
               <button
+                id="demo-insurer2"
+                onClick={() => fillDemo('INSURER2')}
+                className="glass-card rounded-xl px-4 py-3 text-center transition-all hover:bg-white/10 cursor-pointer"
+              >
+                <p className="text-xs font-bold text-emerald-300">INSURER 2</p>
+                <p className="text-[10px] text-white/30 mt-0.5">PT Asuransi Berkah</p>
+              </button>
+              <button
                 id="demo-adjuster"
                 onClick={() => fillDemo('ADJUSTER')}
                 className="glass-card rounded-xl px-4 py-3 text-center transition-all hover:bg-white/10 cursor-pointer"
               >
                 <p className="text-xs font-bold text-violet-300">ADJUSTER</p>
                 <p className="text-[10px] text-white/30 mt-0.5">Budi Santoso</p>
+              </button>
+              <button
+                id="demo-regulator"
+                onClick={() => fillDemo('REGULATOR')}
+                className="glass-card rounded-xl px-4 py-3 text-center transition-all hover:bg-white/10 cursor-pointer"
+              >
+                <p className="text-xs font-bold text-amber-300">REGULATOR</p>
+                <p className="text-[10px] text-white/30 mt-0.5">OJK Indonesia</p>
               </button>
             </div>
           </div>

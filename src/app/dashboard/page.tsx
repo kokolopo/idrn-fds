@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Claim, mockGetClaims, User } from '@/lib/mockData';
+import { Claim, mockGetClaimsByProvider, User } from '@/lib/mockData';
 import GlassTable from '@/components/GlassTable';
 import RiskBadge from '@/components/RiskBadge';
 import ClaimPassport from '@/components/ClaimPassport';
@@ -30,12 +30,16 @@ export default function DashboardPage() {
       return;
     }
     const parsed = JSON.parse(stored) as User;
+    if (parsed.role === 'REGULATOR') {
+      router.push('/regulator');
+      return;
+    }
     if (parsed.role !== 'INSURER') {
       router.push('/adjuster');
       return;
     }
     setUser(parsed);
-    setClaims(mockGetClaims());
+    setClaims(mockGetClaimsByProvider(parsed.company));
   }, [router]);
 
   const handleLogout = () => {
