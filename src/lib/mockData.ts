@@ -1,5 +1,7 @@
 export type ClaimStatus = 'APPROVED' | 'PENDING' | 'REJECTED';
-export type UserRole = 'INSURER' | 'ADJUSTER' | 'REGULATOR';
+export type UserRole = 'INSURER' | 'ADJUSTER' | 'REGULATOR' | 'NASABAH';
+export type PolicyStatus = 'IN_FORCE' | 'LAPSE' | 'REINSTATEMENT' | 'TERMINATED';
+export type ClaimStage = 'SUBMITTED' | 'DOCUMENT_CHECK' | 'ADJUSTER_REVIEW' | 'DECISION' | 'SETTLED';
 
 export interface FraudRule {
   code: string;
@@ -37,6 +39,8 @@ export interface Claim {
   suratKeputusanCabang: string;    // Surat Keputusan Cabang
   // Provider
   provider: string;                // Nama perusahaan asuransi
+  // Claim stage tracking
+  claimStage: ClaimStage;          // Current processing stage
   // Sistem fraud detection
   riskScore: number;
   status: ClaimStatus;
@@ -52,12 +56,24 @@ export interface DoubleClaimGroup {
   confidence: 'HIGH' | 'MEDIUM';
 }
 
+export interface Policy {
+  noPolis: string;
+  namaPeserta: string;
+  tipePeserta: 'PERORANGAN' | 'INSTITUSI';
+  provider: string;
+  periodeAwal: string;
+  periodeAkhir: string;
+  statusPolis: PolicyStatus;
+  claimIds: string[];              // linked claim IDs
+}
+
 export interface User {
   username: string;
   password: string;
   role: UserRole;
   displayName: string;
   company: string;
+  linkedNasabah?: string;          // namaPeserta this user represents
 }
 
 export const MOCK_USERS: User[] = [
@@ -89,6 +105,22 @@ export const MOCK_USERS: User[] = [
     displayName: 'OJK Indonesia',
     company: 'Otoritas Jasa Keuangan',
   },
+  {
+    username: 'nasabah',
+    password: 'nasabah123',
+    role: 'NASABAH',
+    displayName: 'NURI AGUS RAMDHANI',
+    company: 'Perorangan',
+    linkedNasabah: 'NURI AGUS RAMDHANI',
+  },
+  {
+    username: 'nasabah2',
+    password: 'nasabah456',
+    role: 'NASABAH',
+    displayName: 'PT SENTOSA ABADI',
+    company: 'PT Sentosa Abadi',
+    linkedNasabah: 'ADE SENTOSA',
+  },
 ];
 
 // ============================================================
@@ -111,6 +143,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '15 Maret 2025',
     suratKeputusanCabang: '27 Jun 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'ADJUSTER_REVIEW',
     riskScore: 72,
     status: 'PENDING',
     sha256Hash: 'a3f4b2c1d9e8f7a6b5c4d3e2f1a0b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2',
@@ -140,6 +173,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '15 Juni 2025',
     suratKeputusanCabang: '30 Juni 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'SETTLED',
     riskScore: 35,
     status: 'APPROVED',
     sha256Hash: 'b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5',
@@ -170,6 +204,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '27 Mei 2025',
     suratKeputusanCabang: '12 Juni 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'SETTLED',
     riskScore: 28,
     status: 'APPROVED',
     sha256Hash: 'c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6',
@@ -200,6 +235,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '20 Mei 2025',
     suratKeputusanCabang: '05 Juni 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'DOCUMENT_CHECK',
     riskScore: 55,
     status: 'PENDING',
     sha256Hash: 'd6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7',
@@ -229,6 +265,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '01 Maret 2025',
     suratKeputusanCabang: '15 Maret 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'ADJUSTER_REVIEW',
     riskScore: 41,
     status: 'PENDING',
     sha256Hash: 'e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8',
@@ -258,6 +295,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '21 Maret 2025',
     suratKeputusanCabang: '05 April 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'DOCUMENT_CHECK',
     riskScore: 68,
     status: 'PENDING',
     sha256Hash: 'f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9',
@@ -287,6 +325,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '01 Oktober 2025',
     suratKeputusanCabang: '01 November 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'DECISION',
     riskScore: 85,
     status: 'REJECTED',
     sha256Hash: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2',
@@ -317,6 +356,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '20 November 2025',
     suratKeputusanCabang: '10 Desember 2025',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'SUBMITTED',
     riskScore: 47,
     status: 'PENDING',
     sha256Hash: 'b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3',
@@ -346,6 +386,7 @@ export const MOCK_CLAIMS_JAYA: Claim[] = [
     tglDokLengkap: '15 Februari 2026',
     suratKeputusanCabang: '01 April 2026',
     provider: 'PT Asuransi Jaya',
+    claimStage: 'DOCUMENT_CHECK',
     riskScore: 62,
     status: 'PENDING',
     sha256Hash: 'c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4',
@@ -383,6 +424,7 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
     tglDokLengkap: '20 Maret 2025',
     suratKeputusanCabang: '10 April 2025',
     provider: 'PT Asuransi Berkah',
+    claimStage: 'ADJUSTER_REVIEW',
     riskScore: 78,
     status: 'PENDING',
     sha256Hash: 'dd01a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1',
@@ -412,6 +454,7 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
     tglDokLengkap: '28 April 2025',
     suratKeputusanCabang: '15 Mei 2025',
     provider: 'PT Asuransi Berkah',
+    claimStage: 'SETTLED',
     riskScore: 22,
     status: 'APPROVED',
     sha256Hash: 'ee12b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2',
@@ -443,6 +486,7 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
     tglDokLengkap: '05 Maret 2025',
     suratKeputusanCabang: '20 Maret 2025',
     provider: 'PT Asuransi Berkah',
+    claimStage: 'ADJUSTER_REVIEW',
     riskScore: 88,
     status: 'PENDING',
     sha256Hash: 'ff23c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3',
@@ -472,6 +516,7 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
     tglDokLengkap: '25 Agustus 2025',
     suratKeputusanCabang: '10 September 2025',
     provider: 'PT Asuransi Berkah',
+    claimStage: 'SETTLED',
     riskScore: 31,
     status: 'APPROVED',
     sha256Hash: 'aa34d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4',
@@ -502,6 +547,7 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
     tglDokLengkap: '15 Oktober 2025',
     suratKeputusanCabang: '30 Oktober 2025',
     provider: 'PT Asuransi Berkah',
+    claimStage: 'DOCUMENT_CHECK',
     riskScore: 45,
     status: 'PENDING',
     sha256Hash: 'bb45e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5',
@@ -532,6 +578,7 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
     tglDokLengkap: '10 Februari 2026',
     suratKeputusanCabang: '28 Februari 2026',
     provider: 'PT Asuransi Berkah',
+    claimStage: 'SUBMITTED',
     riskScore: 82,
     status: 'PENDING',
     sha256Hash: 'cc56f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6',
@@ -561,6 +608,7 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
     tglDokLengkap: '05 Januari 2026',
     suratKeputusanCabang: '20 Januari 2026',
     provider: 'PT Asuransi Berkah',
+    claimStage: 'SETTLED',
     riskScore: 18,
     status: 'APPROVED',
     sha256Hash: 'dd67a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7',
@@ -579,6 +627,82 @@ export const MOCK_CLAIMS_BERKAH: Claim[] = [
 
 // Legacy alias — keeps existing INSURER dashboard backward-compatible
 export const MOCK_CLAIMS = MOCK_CLAIMS_JAYA;
+
+// ============================================================
+// Policies — linked to claims by nasabah name
+// ============================================================
+export const MOCK_POLICIES: Policy[] = [
+  {
+    noPolis: '1222012012100051',
+    namaPeserta: 'NURI AGUS RAMDHANI',
+    tipePeserta: 'PERORANGAN',
+    provider: 'PT Asuransi Jaya',
+    periodeAwal: '29 Desember 2023',
+    periodeAkhir: '16 Desember 2028',
+    statusPolis: 'IN_FORCE',
+    claimIds: ['JY-001', 'JY-007'],
+  },
+  {
+    noPolis: '2330045012200019',
+    namaPeserta: 'NURI AGUS RAMDHANI',
+    tipePeserta: 'PERORANGAN',
+    provider: 'PT Asuransi Berkah',
+    periodeAwal: '15 Januari 2024',
+    periodeAkhir: '15 Januari 2027',
+    statusPolis: 'IN_FORCE',
+    claimIds: ['BK-001'],
+  },
+  {
+    noPolis: '1422012012100002',
+    namaPeserta: 'ADE SENTOSA',
+    tipePeserta: 'INSTITUSI',
+    provider: 'PT Asuransi Jaya',
+    periodeAwal: '06 Juni 2024',
+    periodeAkhir: '04 Juni 2026',
+    statusPolis: 'IN_FORCE',
+    claimIds: ['JY-003'],
+  },
+  {
+    noPolis: '1422012012100005',
+    namaPeserta: 'ALDY HERMAWAN',
+    tipePeserta: 'PERORANGAN',
+    provider: 'PT Asuransi Jaya',
+    periodeAwal: '06 Januari 2025',
+    periodeAkhir: '06 Januari 2027',
+    statusPolis: 'LAPSE',
+    claimIds: ['JY-005'],
+  },
+  {
+    noPolis: '2330045012200031',
+    namaPeserta: 'ALDY HERMAWAN',
+    tipePeserta: 'PERORANGAN',
+    provider: 'PT Asuransi Berkah',
+    periodeAwal: '10 Desember 2024',
+    periodeAkhir: '10 Desember 2026',
+    statusPolis: 'LAPSE',
+    claimIds: ['BK-003'],
+  },
+  {
+    noPolis: '1422012012100002',
+    namaPeserta: 'WENDY HUSMAN N',
+    tipePeserta: 'PERORANGAN',
+    provider: 'PT Asuransi Jaya',
+    periodeAwal: '30 April 2024',
+    periodeAkhir: '26 Mei 2028',
+    statusPolis: 'REINSTATEMENT',
+    claimIds: ['JY-009'],
+  },
+  {
+    noPolis: '2330045012200068',
+    namaPeserta: 'WENDY HUSMAN N',
+    tipePeserta: 'PERORANGAN',
+    provider: 'PT Asuransi Berkah',
+    periodeAwal: '01 Juni 2024',
+    periodeAkhir: '01 Juni 2027',
+    statusPolis: 'TERMINATED',
+    claimIds: ['BK-006'],
+  },
+];
 
 // ============================================================
 // Mock API functions
@@ -660,6 +784,39 @@ export function detectDoubleClaims(): DoubleClaimGroup[] {
 
   return groups;
 }
+
+// ============================================================
+// Nasabah helpers
+// ============================================================
+
+export function mockGetPoliciesByNasabah(nasabahName: string): Policy[] {
+  const key = nasabahName.trim().toUpperCase();
+  return MOCK_POLICIES.filter(p => p.namaPeserta.toUpperCase().includes(key) || key.includes(p.namaPeserta.toUpperCase()));
+}
+
+export function mockGetClaimsByNasabah(nasabahName: string): Claim[] {
+  const policies = mockGetPoliciesByNasabah(nasabahName);
+  const claimIds = new Set(policies.flatMap(p => p.claimIds));
+  const allClaims = mockGetAllClaims();
+  return allClaims.filter(c => claimIds.has(c.id));
+}
+
+export const CLAIM_STAGE_ORDER: ClaimStage[] = ['SUBMITTED', 'DOCUMENT_CHECK', 'ADJUSTER_REVIEW', 'DECISION', 'SETTLED'];
+
+export const CLAIM_STAGE_LABELS: Record<ClaimStage, string> = {
+  SUBMITTED: 'Diajukan',
+  DOCUMENT_CHECK: 'Verifikasi Dok',
+  ADJUSTER_REVIEW: 'Review Adjuster',
+  DECISION: 'Keputusan',
+  SETTLED: 'Selesai',
+};
+
+export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
+  IN_FORCE: 'In-Force',
+  LAPSE: 'Lapse',
+  REINSTATEMENT: 'Reinstatement',
+  TERMINATED: 'Terminated',
+};
 
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('id-ID', {

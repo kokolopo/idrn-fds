@@ -31,6 +31,8 @@ export default function LoginPage() {
 
     if (user.role === 'REGULATOR') {
       router.push('/regulator');
+    } else if (user.role === 'NASABAH') {
+      router.push('/nasabah');
     } else if (user.role === 'INSURER') {
       router.push('/dashboard');
     } else {
@@ -44,6 +46,8 @@ export default function LoginPage() {
       INSURER2: { u: 'insurer2', p: 'insurer456' },
       ADJUSTER: { u: 'adjuster', p: 'adjuster123' },
       REGULATOR: { u: 'regulator', p: 'regulator123' },
+      NASABAH: { u: 'nasabah', p: 'nasabah123' },
+      NASABAH2: { u: 'nasabah2', p: 'nasabah456' },
     };
     const creds = demoMap[role];
     if (creds) {
@@ -205,6 +209,22 @@ export default function LoginPage() {
               >
                 <p className="text-xs font-bold text-amber-300">REGULATOR</p>
                 <p className="text-[10px] text-white/30 mt-0.5">OJK Indonesia</p>
+              </button>
+              <button
+                id="demo-nasabah"
+                onClick={() => fillDemo('NASABAH')}
+                className="glass-card rounded-xl px-4 py-3 text-center transition-all hover:bg-white/10 cursor-pointer"
+              >
+                <p className="text-xs font-bold text-pink-300">NASABAH</p>
+                <p className="text-[10px] text-white/30 mt-0.5">Nuri Agus (Perorangan)</p>
+              </button>
+              <button
+                id="demo-nasabah2"
+                onClick={() => fillDemo('NASABAH2')}
+                className="glass-card rounded-xl px-4 py-3 text-center transition-all hover:bg-white/10 cursor-pointer"
+              >
+                <p className="text-xs font-bold text-pink-300">NASABAH 2</p>
+                <p className="text-[10px] text-white/30 mt-0.5">PT Sentosa (Institusi)</p>
               </button>
             </div>
           </div>
